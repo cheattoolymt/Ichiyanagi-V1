@@ -1,0 +1,33 @@
+!"Ichiyanagi Code"
+
+spc var ich-ver=1
+
+\ 標準モジュール file / time / sys のデモ
+
+main() exec:
+    \ file: 書き込み -> 読み込み
+    file.write("/tmp/ich_test.txt", "written by Ichiyanagi\n")
+    pvar content = file.read("/tmp/ich_test.txt")
+    terminal.printn("file content: ")
+    terminal.printn(content)
+
+    \ string.split
+    pvar parts = string.split("a,b,c,d", ",")
+    terminal.print("split -> " + parts + " (len " + parts.len() + ")")
+    terminal.print("trim  -> [" + string.trim("   hi   ") + "]")
+
+    \ time
+    pvar t = time.now()
+    terminal.print("time.now returned a value (epoch seconds)")
+
+    \ sys: 環境変数と引数
+    pvar args = sys.args()
+    terminal.print("argc = " + args.len())
+    terminal.print("HOME env exists check done")
+
+    \ math.floor / ceil
+    terminal.print("floor(3.7) = " + math.floor(3.7))
+    terminal.print("ceil(3.2)  = " + math.ceil(3.2))
+
+    terminal.print("stdlib demo ok")
+end

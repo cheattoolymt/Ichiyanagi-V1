@@ -1,0 +1,25 @@
+# build artifacts
+/build/
+*.o
+*.obj
+*.exe
+*.out
+ichiyanagi
+!src/
+
+# cmake
+/cmake-build-*/
+/CMakeCache.txt
+/CMakeFiles/
+/Makefile.cmake
+
+# editor / os
+*.swp
+*~
+.DS_Store
+.vscode/
+.idea/
+
+# temp
+/tmp/
+*.tmp

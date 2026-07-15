@@ -1,0 +1,34 @@
+!"Ichiyanagi Code"
+
+spc var ich-ver=1
+
+var x
+
+func(a, b) exec:
+    pvar result
+
+    if a gt b exec:
+        result = a
+    else exec:
+        result = b
+    end
+
+    while result gt 0 exec:
+        terminal.print(result)
+        result = result - 1
+    end
+
+    ret result
+end
+
+main() exec:
+    pvar y = var x
+    terminal.print("Hello world!")
+    terminal.input("Do you like teganeson?\nAnswer:", answer=x)
+
+    pick:
+        result = 10 / 0
+    error:
+        terminal.print(spc var err-msg)
+    end
+end

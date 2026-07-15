@@ -1,0 +1,10 @@
+!"Ichiyanagi Code"
+
+spc var ich-ver=1
+
+\ 最初のプログラム
+
+main() exec:
+    terminal.print("Hello world!")
+    terminal.print("Ichiyanagi V1 (Tega-Neson) へようこそ")
+end

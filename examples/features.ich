@@ -1,0 +1,107 @@
+!"Ichiyanagi Code"
+
+spc var ich-ver=1
+
+\ ==========================================
+\ Ichiyanagi V1 総合機能デモ
+\ ==========================================
+
+\"
+これは複数行コメントです。
+以下のデモでは、関数・制御構文・演算子・
+標準モジュール・エラー処理などを一通り確認します。
+"
+
+var greeting = "Ichiyanagi"
+
+\ --- 関数: 大きい方を返し、そこからカウントダウン ---
+maxdown(a, b) exec:
+    pvar result
+
+    if a gt b exec:
+        result = a
+    else exec:
+        result = b
+    end
+
+    while result gt 0 exec:
+        terminal.printn(result)
+        terminal.printn(" ")
+        result = result - 1
+    end
+    terminal.print("")
+
+    ret a + b
+end
+
+\ --- 再帰: 階乗 ---
+fact(n) exec:
+    if n le 1 exec:
+        ret 1
+    end
+    ret n * fact(n - 1)
+end
+
+main() exec:
+    pvar name = var greeting
+    terminal.print("== " + name + " V1 feature demo ==")
+
+    \ 算術と優先順位
+    terminal.print("2 + 3 * 4 = " + (2 + 3 * 4))
+    terminal.print("(2 + 3) * 4 = " + (2 + 3) * 4)
+
+    \ 比較・論理演算子
+    if 5 gt 3 and 2 le 2 exec:
+        terminal.print("logic ok: 5 gt 3 and 2 le 2 -> true")
+    end
+
+    \ 関数呼び出し
+    terminal.printn("countdown from max(3,7): ")
+    pvar sum = maxdown(3, 7)
+    terminal.print("sum of args = " + sum)
+
+    \ 再帰
+    terminal.print("fact(5) = " + fact(5))
+
+    \ 標準モジュール: math
+    terminal.print("sqrt(16) = " + math.sqrt(16))
+    terminal.print("pow(2,10) = " + math.pow(2, 10))
+    terminal.print("abs(-9) = " + math.abs(0 - 9))
+
+    \ 標準モジュール: string
+    terminal.print("upper = " + string.upper("teganeson"))
+    terminal.print("len = " + string.len("teganeson"))
+
+    \ list (可変長配列)
+    var nums = list(1, 2, 3)
+    nums.push(4)
+    terminal.print("list = " + nums)
+    terminal.print("nums[0] = " + nums[0])
+    terminal.print("len = " + nums.len())
+    pvar popped = nums.pop()
+    terminal.print("popped = " + popped + ", now = " + nums)
+
+    \ array (固定長配列)
+    var fixed = array(3)
+    fixed[0] = 10
+    fixed[1] = 20
+    fixed[2] = 30
+    terminal.print("array = " + fixed + ", len = " + fixed.len())
+
+    \ ヒープ (hold / drop)
+    hold buffer = 256
+    terminal.print("held 256 bytes as 'buffer'")
+    drop buffer
+    terminal.print("dropped 'buffer'")
+
+    \ エラー処理 (pick / error)
+    pick:
+        pvar bad = 10 / 0
+        terminal.print("this line is skipped")
+    error:
+        terminal.print("caught error: " + spc var err-msg)
+        terminal.print("error code: " + spc var err-code)
+    end
+
+    terminal.print("== demo finished ==")
+end
