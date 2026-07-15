@@ -523,7 +523,7 @@ Copyright 2026 nyan<(nyan4)
 
 - `LICENSE.txt` … Apache License 2.0 全文を配置する
 - `NOTICE`（任意）… サードパーティ由来のコードや謝辞を記載する場合はここに追加する
-- readme.md これを編集してくださいって
+- readme.md 
 
 ### 14.4 改変時の注意
 
