@@ -47,11 +47,18 @@ ctest --test-dir build
 ## 使い方
 
 ```bash
-# プログラムを実行
+# プログラムを実行（インタプリタ）
 ./build/ichiyanagi examples/hello.ich
 
 # プログラムに引数を渡す（sys.args() で取得できる）
 ./build/ichiyanagi examples/stdlib.ich foo bar
+
+# ★ ネイティブ実行ファイルへコンパイル（x86-64 Linux / ELF）
+./build/ichiyanagi --compile examples/compile_demo.ich -o compile_demo
+./compile_demo
+
+# ★ x86-64 アセンブリだけを出力（デバッグ／学習用）
+./build/ichiyanagi --emit-asm examples/hello.ich -o hello.s
 
 # トークンをダンプ（デバッグ用）
 ./build/ichiyanagi --tokens examples/hello.ich
@@ -60,6 +67,42 @@ ctest --test-dir build
 ./build/ichiyanagi --version
 ./build/ichiyanagi --help
 ```
+
+`-o` を省略するとソース名から出力名を決めます（`--compile` は拡張子を除いた名前、
+`--emit-asm` は `.s`）。`--compile` / `--emit-asm` の短縮形として `-c` / `-S` も使えます。
+
+---
+
+## ネイティブコンパイル（codegen）
+
+`--compile` は AST から x86-64 アセンブリ（System V AMD64 ABI）を**自前生成**し、
+Linux 純正の `as` / `ld` に引き渡して **libc 非依存の静的 ELF 実行ファイル**を生成します
+（仕様書 13 章のパイプライン `[1] Lexer → [2] Parser → [3] Codegen → as/ld → ELF` を実装）。
+
+### 対応環境
+
+- **OS**: Linux のみ / **CPU**: x86-64 のみ（仕様 13.2 / 13.6 の V1 方針どおり）
+- ビルド／実行時に `as` と `ld`（binutils）が必要です
+
+### コンパイル可能な言語サブセット（V1）
+
+| 機能 | 対応 |
+|---|---|
+| 数値（64bit 整数モデル） | ✅ |
+| 算術 `+ - * /`（整数除算） | ✅ |
+| 比較 `gt lt eq neq ge le` | ✅ |
+| 論理 `not and or`（短絡評価） | ✅ |
+| `var` / `pvar` 宣言・代入、`var x` 参照 | ✅ |
+| 関数定義・呼び出し・再帰・`ret` | ✅（引数は最大 6 個） |
+| `if` / `else` / `while` | ✅ |
+| `terminal.print` / `terminal.printn`（数値・文字列リテラル） | ✅ |
+| `list` / `array`、`hold` / `drop`、`pick` / `error`、上記以外のモジュール | ❌（インタプリタを利用） |
+
+> codegen は整数モデルのため、`10 / 3` は `3`、真偽値は `1`/`0` として出力されます
+> （インタプリタはそれぞれ `3.33333` / `true`・`false`）。非対応の構文を `--compile`
+> すると、その旨のエラーを表示してコンパイルを中止します（インタプリタでは全機能が動作します）。
+
+`main()` の `ret` の値がプロセスの終了コードになります。
 
 ---
 
@@ -198,10 +241,11 @@ Ichiyanagi-V1/
 │   ├── parser.c/.h         構文解析（AST 生成）
 │   ├── ast.c/.h            AST 定義
 │   ├── value.c/.h          動的値の表現
-│   ├── interp.c/.h         AST ツリーウォーク評価器
-│   ├── module.c/.h         標準モジュール実装
+│   ├── interp.c/.h          AST ツリーウォーク評価器
+│   ├── codegen.c/.h         x86-64 ネイティブコード生成（Linux/ELF）
+│   ├── module.c/.h          標準モジュール実装
 │   ├── error.c/.h          pick/error ランタイム
-│   └── common.c/.h         共通ユーティリティ
+│   └── common.c/.h          共通ユーティリティ
 ├── examples/               サンプルプログラム（*.ich）
 ├── tests/                  テストスイート
 └── docs/
@@ -210,11 +254,19 @@ Ichiyanagi-V1/
 
 ### 実装メモ
 
-仕様書 13 章では「AST から x86-64 アセンブリを直接生成する」構成が示されています。
-この V1 実装は、まず全 OS で確実に動作する **AST ツリーウォーク評価器** として言語機能を
-完全実装したものです（lexer → parser → AST → evaluator のパイプラインは仕様どおり）。
-ネイティブコード生成バックエンド（Linux ELF から着手）は今後のバージョンで
-`codegen.c` として追加していく予定です。
+Ichiyanagi V1 は **2 つの実行経路**を持ちます。
+
+1. **AST ツリーウォーク評価器（`interp.c`）** — 全 OS / 全アーキテクチャで動作し、
+   言語機能をすべて実装しています（既定の実行方法）。
+2. **ネイティブコンパイラ（`codegen.c`）** — 仕様書 13 章のとおり AST から x86-64
+   アセンブリ（System V AMD64 ABI）を自前生成し、`as` / `ld` で ELF 実行ファイルを
+   生成します（`--compile`）。V1 では Linux / x86-64 のみ、かつコンパイル可能な言語
+   サブセット（上記「ネイティブコンパイル」章の表を参照）が対象です。
+
+インタプリタはリファレンス実装として全機能を担保し、コンパイラは仕様 13 章の
+「AST → アセンブリ → ネイティブ ELF」パイプラインを実際に動くバイナリとして実現します。
+Windows / macOS 対応や ARM64 向け `codegen_arm64.c`、`list`/`array` などの動的値の
+コンパイル対応は今後のバージョンの拡張課題です（仕様 13.5 / 13.6）。
 
 ---
 
