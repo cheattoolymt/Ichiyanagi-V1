@@ -27,8 +27,10 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -I$(SRC_DIR) -c $< -o $@
 
 test: all
-	@echo "Running tests..."
+	@echo "Running interpreter tests..."
 	@bash tests/run_tests.sh
+	@echo "Running codegen (native compiler) tests..."
+	@bash tests/run_codegen_tests.sh
 
 install: all
 	install -Dm755 $(BIN) $(DESTDIR)/usr/local/bin/ichiyanagi

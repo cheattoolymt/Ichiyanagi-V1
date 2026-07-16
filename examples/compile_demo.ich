@@ -1,0 +1,58 @@
+!"Ichiyanagi Code"
+
+spc var ich-ver=1
+
+\"
+compile_demo.ich
+このプログラムは Ichiyanagi V1 のネイティブコード生成 (codegen) で
+コンパイル可能なサブセットのみで書かれている。
+
+  ./build/ichiyanagi --compile examples/compile_demo.ich -o compile_demo
+  ./compile_demo
+
+インタプリタでも同じ結果になる:
+  ./build/ichiyanagi examples/compile_demo.ich
+"
+
+var total = 0
+
+\ n の階乗を再帰で計算する
+fact(n) exec:
+    if n le 1 exec:
+        ret 1
+    end
+    ret n * fact(n - 1)
+end
+
+\ a から b まで(両端含む)の合計を while で求める
+sum_range(a, b) exec:
+    pvar acc = 0
+    pvar i = a
+    while i le b exec:
+        acc = acc + i
+        i = i + 1
+    end
+    ret acc
+end
+
+main() exec:
+    terminal.print("Ichiyanagi native codegen demo")
+
+    terminal.print(fact(5))          \ 120
+    terminal.print(fact(10))         \ 3628800
+
+    total = sum_range(1, 100)        \ 5050 (グローバルへ代入)
+    terminal.print(var total)
+
+    terminal.print(2 + 3 * 4)        \ 14 (優先順位)
+    terminal.print((2 + 3) * 4)      \ 20
+    terminal.print(0 - 42)           \ -42 (単項マイナス相当)
+
+    if total gt 5000 and total lt 6000 exec:
+        terminal.print("range-ok")
+    else exec:
+        terminal.print("range-ng")
+    end
+
+    ret 0
+end

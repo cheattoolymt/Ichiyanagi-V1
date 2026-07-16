@@ -33,3 +33,12 @@ install(TARGETS ichiyanagi DESTINATION bin)
 enable_testing()
 add_test(NAME hello
          COMMAND ichiyanagi "${CMAKE_SOURCE_DIR}/examples/hello.ich")
+
+# インタプリタのテストスイート
+add_test(NAME interp_suite
+         COMMAND bash "${CMAKE_SOURCE_DIR}/tests/run_tests.sh")
+
+# codegen (ネイティブコンパイラ) のテストスイート。
+# x86-64 Linux 以外では自動的に skip される。
+add_test(NAME codegen_suite
+         COMMAND bash "${CMAKE_SOURCE_DIR}/tests/run_codegen_tests.sh")
